@@ -1,0 +1,7 @@
+
+1.主机和协议要求必须小写:
+http://user:pass@host.com:8080/p/a/t/h?query=string#hash
+协议:http:
+主机:host.com:8080
+主机名:host.com
+端口:8080

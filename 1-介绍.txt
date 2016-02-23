@@ -1,0 +1,20 @@
+1.Node.js就是由谷歌浏览器，v8引擎，c++编写的javaScript运行环境
+
+2.网站:
+nodejs.org  js官网
+npmjs.org   nodejs开源模块
+github.com 代码托管平台
+stackoverflow.com 难点解答
+
+3.版本
+偶数位表示稳定版:0.6.x,0.8.x
+奇数位表示非稳定版:0.7.x,0.9.x
+
+4.nodejs
+单线程模型  就是只有一个主线程
+event driver 就是所有的任务都会放到事件队列中顺序执行
+不会在主线程中直接操作I/O
+
+5.node.js和浏览器执行环境中区别之一是全局变量不同：
+比如window只能在浏览器中取到，而process则只能在node环境中取到。
+
