@@ -1,0 +1,21 @@
+
+一、模块路径解析规则
+
+1.内置模块（fs:操作文件,http:网络）
+如果传递给require函数的是NodeJS内置模块名称，不做路径解析，直接返回内部模块的导出对象，例如require('fs')。
+
+2.node_modules目录
+NodeJS定义了一个特殊的node_modules目录用于存放模块。主要用于存放开源库, 此目录中的所有文件不需要存放于版本控制中。
+在该模块中使用require('foo/bar')方式加载模块时，则NodeJS依次尝试使用以下路径：
+/home/user/node_modules/foo/bar (全局)
+/home/node_modules/foo/bar （当前用户）
+/node_modules/foo/bar (本地)
+
+3.NODE_PATH环境变量
+与PATH环境变量类似，NodeJS允许通过NODE_PATH环境变量来指定额外的模块搜索路径。
+NODE_PATH环境变量中包含一到多个目录路径，路径之间在Linux下使用:分隔，在Windows下使用;分隔。
+例如:
+NODE_PATH=/home/user/lib:/home/lib
+当使用require('foo/bar')的方式加载模块时，则NodeJS依次尝试以下路径。
+/home/user/lib/foo/bar
+/home/lib/foo/bar
