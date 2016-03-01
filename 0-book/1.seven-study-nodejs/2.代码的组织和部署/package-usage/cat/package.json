@@ -1,0 +1,8 @@
+{
+  "name": "cat",
+  "version":"0.0.1",
+  "main": "./lib/main.js",
+  "dependencies":{
+    "dir2json-lite":"0.1.3"
+  }
+}
