@@ -8,7 +8,7 @@
 var foo1 = require('./hello');
 var foo2 = require('./hello.js');
 var foo3 = require('/Users/longfei/git/NodeJsStudy/NodeJsStudy/0-book/1.seven-study-nodejs/1.基础/require-usage/hello');
-var foo4 = require('/Users/longfei/git/NodeJsStudy/NodeJsStudy/0-book/1.seven-study-nodejs/1.基础/require-usage/hello.js');
+var foo4 = require('/Users/longfei/git/NodeJsStudy/NodeJsStudy/0-book/1.seven-study-nodejs/1.基础/require-usage/1-httpTest.js');
 
 //注意foo1至foo4中保存的是同一个模块的导出对象。
 console.log(foo1.printName());
