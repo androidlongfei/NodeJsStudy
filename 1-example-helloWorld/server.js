@@ -27,7 +27,7 @@ console.log('Server running at http://127.0.0.1:1337/');
 
 /**
  * 1.打开终端，进入到server.js目录
- * 2.输入node server.js
+ * 2.输入node 1-static.js
  * 3.此时服务已经运行起来了，然后再浏览器地址栏输入127.0.0.1:1337就能显示hello,world
  * 4.第一个示例运行成功
  */
