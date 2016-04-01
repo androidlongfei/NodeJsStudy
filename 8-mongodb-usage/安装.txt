@@ -1,0 +1,22 @@
+Mac os 安装mongodb
+
+1.下载对应的tgz包
+下载地址：https://www.mongodb.org （官网，可能需要翻墙）
+下载后的文件为:
+mongodb-osx-x86_64-3.2.4
+
+2.在终端执行解压命令 tar -zxvf mongodb-osx-x86_64-3.2.4
+
+3.解压后我们可放到自己的目录下（默认为/Users/longfei/mongodb）
+
+4.添加环境变量PATH :
+vim /Users/longfei/.bash_profile
+export PATH=/Users/longfei/mongodb/mongodb-osx-x86_64-3.2.4/bin:$PATH
+
+5.设置数据库文件路径
+
+终端输入mkdir -p /data/db 创建目录
+/data/db 为默认路径 一定要确保当前用户对该目录有读写权限。
+sudo chmod 777 /data/db
+
+6.终端输入mongod 启动MongoDB。

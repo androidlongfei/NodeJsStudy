@@ -1,0 +1,195 @@
+
+成功启动MongoDB后，再打开一个命令行窗口输入mongo，就可以进行数据库的一些操作。
+
+启动数据库==>是在终端在终端输入:mongod
+数据库操作==>是在终端输入:mongo
+
+一、创建数据库
+如果你想创建一个“myTest”的数据库，
+先运行use myTest命令，
+之后就做一些操作（如：db.createCollection('user')）,
+这样就可以创建一个名叫“myTest”的数据库
+步骤:
+use mytest2
+db.createCollection('mytest', {size: 20, capped: 5, max: 100});
+show dbs
+
+
+二、数据库常用操作
+1、Help查看命令提示
+help
+db.help();
+db.yourColl.help();
+db.youColl.find().help();
+rs.help();
+
+2、查询所有数据库
+show dbs;
+
+3、切换/创建数据库
+use yourDB; 当创建一个集合(table)的时候会自动创建当前数据库
+
+4.删除当前使用数据库
+db.dropDatabase();
+
+5、从指定主机上克隆数据库
+db.cloneDatabase(“127.0.0.1”); 将指定机器上的数据库的数据克隆到当前数据库
+
+6、从指定的机器上复制指定数据库数据到某个数据库
+db.copyDatabase("mydb", "temp", "127.0.0.1");将本机的mydb的数据复制到temp数据库中
+
+7、修复当前数据库
+db.repairDatabase();
+
+8、查看当前使用的数据库
+db.getName();
+
+9、显示当前db状态
+db.stats();
+
+10、当前db版本
+db.version();
+
+11、查看当前db的链接机器地址
+db.getMongo();
+
+(4,5,6,7,8,9,10,11)都依赖第三步（use test），就是要进入到指定数据库环境
+
+三、Collection聚集集合
+1、创建一个聚集集合（table）
+db.createCollection(‘mytest’, {size: 20, capped: 5, max: 100});//创建成功会显示{“ok”:1}
+操作步骤：
+show dbs 显示所有数据库（local,test）
+use test (进入到test数据库环境)
+db.createCollection(‘mytest’, {size: 20, capped: 5, max: 100}); 在test数据库中创建mytest表
+
+2、得到指定名称的聚集集合（table）
+db.getCollection("account");
+
+3、得到当前db的所有聚集集合
+db.getCollectionNames();
+
+4、显示当前db所有聚集索引的状态
+db.printCollectionStats();
+
+四、用户相关
+1、添加一个用户
+db.addUser("name");
+db.addUser("userName", "pwd123", true); 添加用户、设置密码、是否只读
+
+2、数据库认证、安全模式
+db.auth("userName", "123123");
+
+3、显示当前所有用户
+show users;
+
+4、删除用户
+db.removeUser("userName");
+
+五、聚集集合查询
+1、查询所有记录
+db.userInfo.find();
+相当于：select* from userInfo;
+步骤：
+show dbs
+use test
+show collections 显示(mytest,personinfo)
+db.personinfo.find()
+
+2、查询去掉后的当前聚集集合中的某列的重复数据
+db.userInfo.distinct("name");
+会过滤掉name中的相同数据
+相当于：select distict name from userInfo;
+
+3、查询age = 22的记录
+db.userInfo.find({"age": 22});
+相当于： select * from userInfo where age = 22;
+
+4、查询age > 22的记录
+db.userInfo.find({age: {$gt: 22}});
+相当于：select * from userInfo where age >22;
+
+5、查询age < 22的记录
+db.userInfo.find({age: {$lt: 22}});
+相当于：select * from userInfo where age <22;
+
+6、查询age >= 25的记录
+db.userInfo.find({age: {$gte: 25}});
+相当于：select * from userInfo where age >= 25;
+
+7、查询age <= 25的记录
+db.userInfo.find({age: {$lte: 25}});
+
+8、查询age >= 23 并且 age <= 26
+db.userInfo.find({age: {$gte: 23, $lte: 26}});
+
+9、查询name中包含 mongo的数据
+db.userInfo.find({name: /mongo/});
+//相当于%%
+[code]select * from userInfo where name like ‘%mongo%';
+
+10、查询name中以mongo开头的
+db.userInfo.find({name: /^mongo/});
+select * from userInfo where name like ‘mongo%';
+
+19、查询第一条数据
+db.userInfo.findOne();
+相当于：selecttop 1 * from userInfo;
+db.userInfo.find().limit(1);
+
+20、查询某个结果集的记录条数
+db.userInfo.find({age: {$gte: 25}}).count();
+相当于：select count(*) from userInfo where age >= 20;
+
+21、按照某列进行排序
+db.userInfo.find({sex: {$exists: true}}).count();
+相当于：select count(sex) from userInfo;
+
+六、修改、添加、删除集合数据
+1、添加
+db.users.save({name: ‘zhangsan', age: 25, sex: true});
+
+2、修改
+db.users.update({age: 25}, {$set: {name: 'changeName'}}, false, true);
+相当于：update users set name = ‘changeName' where age = 25;
+
+3、删除
+db.users.remove({age: 132});
+
+七、语句块操作
+1、将一个对象转换成json
+tojson(new Object());
+
+2、循环添加数据
+for (var i = 0; i < 30; i++) {
+db.users.save({name: "u_" + i, age: 22 + i, sex: i % 2});
+};
+
+3、find 游标查询
+var cursor = db.users.find();
+while (cursor.hasNext()) {
+    printjson(cursor.next());
+}
+
+4、forEach迭代循环
+db.users.find().forEach(printjson);
+
+5、将find游标当数组处理
+var cursor = db.users.find();
+cursor[4];
+
+6、forEach传递函数显示信息
+db.things.find({x:4}).forEach(function(x) {print(tojson(x));});
+
+八、查看聚集集合基本信息
+show dbs:显示数据库列表
+show collections：显示当前数据库中的集合（类似关系数据库中的表）
+show users：显示用户
+use <db name>：切换当前数据库，这和MS-SQL里面的意思一样
+db.help()：显示数据库操作命令，里面有很多的命令
+db.foo.help()：显示集合操作命令，同样有很多的命令，foo指的是当前数据库下，一个叫foo的集合，并非真正意义上的命令
+db.foo.find()：对于当前数据库中的foo集合进行数据查找（由于没有条件，会列出所有数据）
+db.foo.find( { a : 1 } )：对于当前数据库中的foo集合进行查找，条件是数据中有一个属性叫a，且a的值为1
+
+http://www.jb51.net/article/48217.htm
+
