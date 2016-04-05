@@ -1,0 +1,15 @@
+{
+  "name": "test_redis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "longgfei",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^4.4.10",
+    "redis": "^2.5.3"
+  }
+}
