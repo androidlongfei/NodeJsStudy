@@ -1,0 +1,250 @@
+以下是Mac安装mysql
+
+一、MySQL安装
+到MySQL官网上http://dev.mysql.com/downloads/mysql/，下载mysql可安装dmg版本
+比如：Mac OS X ver. 10.9 (x86, 64-bit), DMG Archive
+
+下载完的文件为：mysql-5.7.11-osx10.10-x86_64.dmg,mysql-5.6.24-osx10.9-x86_64.dmg
+点击安装包一步步傻瓜式安装就行。
+
+系统偏好设置的其他里，点击“mysql”的图标
+点击Start MySQL Server按钮，启动mysql
+
+二、打开终端，定义MySQL别名
+cd ~
+vim .bash_profile
+输入以下命令
+alias mysql=/usr/local/mysql/bin/mysql
+alias mysqladmin=/usr/local/mysql/bin/mysqladmin
+保存并退出.bash_profile文件
+重新启动终端
+
+三、设置mysql root账号的密码
+1.设置初始密码（只有第一次安装时才设置初始密码）
+mysqladmin -u root password 123456(#初始密码)
+备注:-u 是username的缩写,后面是用户名,
+root就是用户名(root账户)
+password是密码,后面跟着的是设置的密码(123456)
+输完这条命令后就设置了root账户的初始化密码是123456
+
+2.更改初始密码
+//如果设置完成后，需要修改，执行命令
+mysqladmin -u root -p password hlf123456(#最新密码)
+接着会提示输入密码，此时输入旧密码，回车
+备注：
+为什么需要更改初始密码?
+主要是为了安全考虑，jdbc只有更改了初始密码才能连接上
+
+3.如果设置root账户的密码失败，有可能是以下原因引起的:
+错误一:ERROR 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)
+错误二:Access denied; you need (at least one of) the SUPER privilege(s) for this operation
+错误三:Can't connect to local MySQL server through socket '/tmp/mysql.sock'
+错误说明:你的root权限不够,mysql配置错误,忘记root账户密码，就可以参考下面的步骤设置权限
+
+(1)关闭mysql数据库
+
+(2)配置mysql数据库
+a.检测/etc/目录下是否有my.cnf文件
+备注:my.cof是mysql的配置文件
+
+a_1.如果没有则自己创建:
+sudo cp /usr/local/mysql/support-files/my-default.cnf /etc
+mv /etc/my-default.cnf /etc/my.cnf
+vim /etc/my.cnf
+#清空/etc/my.cnf中的内容,然后增加以下内容
+############################
+[client]
+port = 3306
+socket = /tmp/mysql.sock
+
+[mysqld]
+port = 3306
+socket = /tmp/mysql.sock
+############################
+#备注:port是mysql的端口,socket是mysql的连接方式
+
+a_2.如果存在，则查看/etc/my.cnf的内容：
+port是否是3306，
+socket是否是/tmp/mysql.sock
+如果不是则改之
+
+b.检测/tmp/mysql.sock是否存在
+
+b_1.如果不存在则新建一个空的文本文件,然后重命令为mysql.sock
+cd /tmp
+touch new.txt
+mv new.txt mysql.sock
+
+(3)skip-grant-tables(无授权)模式启动mysql
+cd /usr/local/mysql/bin/
+sudo su
+./mysqld_safe --skip-grant-tables &
+#备注：--skip-grant-tables：就是在启动mysql时不启动grant-tables(授权表)。主要是忘记管理员密码后是用。
+
+(4)修改mysql管理员密码
+重新启动一个终端,输入一下命令：
+mysql（备注：进入到mysql环境,在不启动grant-tables情况下，就是不需要输入用户名和密码，依赖第三步）
+use mysql;（进入到mysql数据库，这是系统自带的）
+
+#版本在5.7以上的mysql更改root账户的密码
+update user set authentication_string=password('123456') where user='root';
+#备注:123456是root账户的新密码,authentication_string是user表的一个字段(密码)，5.7版本用authentication_string字段替换了password字段
+
+#版本在5.7以下的mysql更改root账户的密码
+update user set password=password('123456') where user='root';
+#备注:123456是root账户的新密码,password是user表的密码字段
+
+flush privileges;
+#刷新使之生效
+
+exit;
+#退出mysql环境
+
+#自此修改root账户的密码成功(注意如果是第一次安装可能只是设置root的初始密码，后续可能需要更改密码)
+
+(4)退出skip-grant-tables(无授权)模式
+启动终端，输入一线命令：
+ps -A | grep mysql
+备注：显示所有与mysql相关的进程号（比如10367，10324）
+sudo kill -9 10367 10324
+#杀掉mysql相关的进程
+
+(5)重启mysql
+系统偏好设置的其他里，点击“mysql”的图标
+点击Start MySQL Server按钮，启动mysql
+
+四、连接数据库
+mysql -u root -p
+#备注：然后提示输入密码，输入三中设置的密码
+-u root是root账户
+－p 指root账户对应的密码（需要在终端输入）
+
+如果是登录远程主机上的mysql数据库
+mysql -h 主机地址 -u 用户名 -p 用户密码
+
+#备注：如果root账户能通过终端链接数据库，而通过jdbc无法连接，请根据以下命令修改初始密码
+第一种（终端）:
+mysqladmin -u root -p password hlf123456(#最新密码)
+接着会提示输入密码，此时输入旧密码，回车
+
+第二种(可视化界面)：
+在http://dev.mysql.com/downloads/workbench/
+下载mysql-workbench-community-6.3.6-osx-x86_64.dmg
+然后安装
+安装成功后,点击增加一个连接，只需输入连接名即可,然后连接数据库，会提示你修改密码.
+
+五、增加用户并授权
+
+1.使用root账户连接数据库
+mysql -u root -p
+
+2.授权
+格式如下： grant 操作权限 on 数据库.* to test1@"%" identified by "abc";
+意思是： 授予，某主机上的某用户（附带该用户的登录密码）在某数据库上，执行某些操作的权限
+
+(1)比如：任意主机上（“%”）,用户（用户名：test1,密码：adc）在所有数据库上，执行任意操作的权限（危险哦）
+grant all privileges on *.* to test1@"%" identified by "abc";
+备注:
+#################
+其中 all privileges 表示查询、插入、修改、删除的权限：select、insert、update、delete
+以上命令等价于：
+grant select,insert,update,delete on *.* to test1@"%" identified by "abc";
+################
+
+flush privileges;
+备注:
+#################
+然后刷新权限
+#################
+
+(2)授权本地主机上的用户操作数据库的权限
+create database openfire;
+备注:
+###########
+创建openfire数据库
+show databases;
+显示所有数据库，会包含openfire。
+############
+
+#授予本地主机用户 (用户名：longfei,密码：654321)访问数据库（数据库名称：openfire）的操作权限
+grant all privileges on openfire.* to longfei@localhost identified by "654321";
+flush privileges;
+
+(3)使用新增的用户访问数据库
+mysql -u longfei -p
+备注:
+#######
+使用longfei用户连接数据库
+#######
+
+show databases;
+备注:
+#######
+显示longfei用户的所有数据库,包括上一步创建的openfire数据库
+#######
+
+六、更新指定账户的密码（用户名：test1,新密码：123456）
+mysql -u root -p
+use mysql;
+##5.7以下
+update user set password=password('123456') where User="test1" and Host="localhost";
+##5.7以上
+update user set authentication_string=password('123456') where user='test1';
+
+七、删除用户
+mysql -u root -p
+use mysql;
+delete from user where User="test7" and Host="localhost";
+备注:
+#############
+删除mysql数据库中user表中的某个本地用户（test7）
+############
+
+八、显示命令
+(1)显示所有数据库列表
+show databases;
+
+初始化只有两个数据库，mysql 和 test
+注意：Mysql的系统信息都存储在mysql库中，比如：修改密码和新增用户，实际就是在这个库进行
+
+(2)打开某个数据库（比如数据库：openfire）;
+use openfire;
+
+(3)显示本库中的所有表
+show tables;
+
+(4)显示某表的结构
+describe table1;
+
+(5)建库
+create database 库名；
+
+(6)建表
+use 库名；
+create table 表名 (字段设定列表)；
+
+(7)删库
+drop database 库名；
+
+(8)删表
+drop table 表名；
+
+(9)将表中的记录清空
+delete from 表名；
+
+(10)显示表中的记录
+select * from 表名；
+
+九、退出mysql
+
+exit
+
+十、启动和停止mysql
+
+启动
+/usr/local/mysql/share/mysql.server start
+
+停止
+/usr/local/mysql/bin/mysqladmin -u root -p shutdown
+输入root密码
+
