@@ -1,0 +1,242 @@
+一、MySQL处理数据库和表的常用命令
+
+1.处理数据库
+查看数据库
+mysql> show databases;
+
+创建数据库
+mysql> create database db_test;
+Query OK, 1 row affected (0.00 sec)
+
+使用数据库
+数据库一旦创建，就可以通过“使用”（use命令）数据库，将其指定为默认的工作数据库。
+mysql> use db_test;
+Database changed
+
+删除数据库
+删除数据库的方式与创建的方式很相似。可以在mysql客户端中使用drop命令删除数据库，如下：
+mysql> drop database db_test;
+Query OK, 0 rows affected (0.00 sec)
+
+2.处理表
+这里将对如何创建、列出、查看、删除和修改MySQL数据库表。
+
+2.1创建表
+表通过create table语句来创建。创建表的过程中会使用非常多的选项和子句，在这里完全总结一遍也是不现实的，这里只是总结最普遍的，以后遇到别的，再单个总结。创建表的一般用法如下：
+mysql> create table tb_test(
+    -> id int unsigned not null auto_increment,
+    -> firstname varchar(25) not null,
+    -> lastname varchar(25) not null,
+    -> email varchar(45) not null,
+    -> phone varchar(10) not null,
+    -> primary key(id));
+Query OK, 0 rows affected (0.03 sec)
+记住，表至少包含一列。另外，创建表之后总是可以再回过头来修改表的结构。无论当前是否在使用目标数据库，都可以创建表，只要在表名前面加上目标数据库即可。例如：
+mysql> create table db_test.tb_test(
+    -> id int unsigned not null auto_increment,
+    -> firstname varchar(25) not null,
+    -> lastname varchar(25) not null,
+    -> email varchar(45) not null,
+    -> phone varchar(10) not null,
+    -> primary key(id));
+Query OK, 0 rows affected (0.03 sec)
+
+2.2有条件的创建表
+在默认情况下，如果试图创建一个已经存在的表，MySQL会产生一个错误。为了避免这个错误，create table语句提供了一个子句，如果你希望在目标表已经存在的情况下简单地退出表创建，就可以使用这个子句。例如：
+mysql> create table if not exists db_test.tb_test(
+    -> id int unsigned not null auto_increment,
+    -> firstname varchar(25) not null,
+    -> lastname varchar(25) not null,
+    -> email varchar(45) not null,
+    -> phone varchar(10) not null,
+    -> primary key(id));
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+无论是否已经创建，都会在返回到命令提示窗口时显示“Query OK”消息。
+
+2.3复制表
+基于现有的表创建新表是一项很容易的任务。以下代码将得到tb_test表的一个副本，名为tb_test2:
+mysql> create table tb_test2 select * from db_test.tb_test;
+Query OK, 0 rows affected (0.03 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+将向数据库增加一个相同的表tb_test2。而有的时候，可能希望只基于现有表的几个列创建一个表。通过create select语句中指定列就可以实现：
+mysql> describe tb_test;
++-----------+------------------+------+-----+---------+----------------+
+| Field     | Type             | Null | Key | Default | Extra          |
++-----------+------------------+------+-----+---------+----------------+
+| id        | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| firstname | varchar(25)      | NO   |     | NULL    |                |
+| lastname  | varchar(25)      | NO   |     | NULL    |                |
+| email     | varchar(45)      | NO   |     | NULL    |                |
+| phone     | varchar(10)      | NO   |     | NULL    |                |
++-----------+------------------+------+-----+---------+----------------+
+5 rows in set (0.01 sec)
+mysql> create table tb_test2 select id, firstname, lastname, email from tb_test;
+Query OK, 0 rows affected (0.03 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+mysql> describe tb_test2;
++-----------+------------------+------+-----+---------+-------+
+| Field     | Type             | Null | Key | Default | Extra |
++-----------+------------------+------+-----+---------+-------+
+| id        | int(10) unsigned | NO   |     | 0       |       |
+| firstname | varchar(25)      | NO   |     | NULL    |       |
+| lastname  | varchar(25)      | NO   |     | NULL    |       |
+| email     | varchar(45)      | NO   |     | NULL    |       |
++-----------+------------------+------+-----+---------+-------+
+4 rows in set (0.01 sec)
+
+2.4创建临时表
+有的时候，当工作在非常大的表上时，可能偶尔需要运行很多查询获得一个大量数据的小的子集，不是对整个表运行这些查询，而是让MySQL每次找出所需的少数记录，将记录保存到一个临时表可能更快一些，然后对这些临时表进行查询操作。可以通过使用temporary关键字和create table语句来实现。
+mysql> create temporary table emp_temp select firstname, lastname from tb_test;
+Query OK, 0 rows affected (0.02 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+临时表的创建与其它表一样，只是它们存储在操作系统指定的临时目录中。临时表将在你连接MySQL期间存在，当你断开时，MySQL将自动删除表并释放所有的内存空间；当然了，你也可以手动的使用drop table命令删除临时表。
+
+2.5查看数据库中可用的表
+可以使用show tables命令完成。例如：
+mysql> show tables;
++-------------------+
+| Tables_in_db_test |
++-------------------+
+| tb_test           |
+| tb_test2          |
++-------------------+
+2 rows in set (0.00 sec)
+
+2.6查看表结构
+可以使用describe语句查看表结构，例如：
+mysql> describe tb_test;
++-----------+------------------+------+-----+---------+----------------+
+| Field     | Type             | Null | Key | Default | Extra          |
++-----------+------------------+------+-----+---------+----------------+
+| id        | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| firstname | varchar(25)      | NO   |     | NULL    |                |
+| lastname  | varchar(25)      | NO   |     | NULL    |                |
+| email     | varchar(45)      | NO   |     | NULL    |                |
+| phone     | varchar(10)      | NO   |     | NULL    |                |
++-----------+------------------+------+-----+---------+----------------+
+5 rows in set (0.00 sec)
+另外，使用show命令也能得到相同的结果，例如：
+mysql> show columns in tb_test;
++-----------+------------------+------+-----+---------+----------------+
+| Field     | Type             | Null | Key | Default | Extra          |
++-----------+------------------+------+-----+---------+----------------+
+| id        | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| firstname | varchar(25)      | NO   |     | NULL    |                |
+| lastname  | varchar(25)      | NO   |     | NULL    |                |
+| email     | varchar(45)      | NO   |     | NULL    |                |
+| phone     | varchar(10)      | NO   |     | NULL    |                |
++-----------+------------------+------+-----+---------+----------------+
+5 rows in set (0.00 sec)
+
+2.7删除表
+删除表是使用drop table语句实现的，其语法如下：
+drop [temporary] table [if exists] tbl_name [, tbl_name, ...]
+mysql>drop table if exists tbl_name,tbl_name;
+
+2.8更改表结构
+我们会发现，我们会经常修改和改进表结构，特别是在开发初期；但是，每次进行修改时不必都先删除再重新创建表。相反，可以使用alter语句修改表的结构。利用这个语句，可以再必要时删除、修改和增加列。和create table一样，alter table提供了很多子句、关键字和选项。这里只是会说一些简单的使用，比如在表tb_demo表中插入一列，表示email，代码如下：
+mysql> alter table tb_demo add column email varchar(45);
+Query OK, 0 rows affected (0.14 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+新的列放在表的最后位置。不过，还可以使用适当的关键字（包括first、after和last）来控制新列的位置。如果想修改表，比如，刚刚加的email，我想加入一个not null控制，代码可以是这样的：
+mysql> alter table tb_demo change email email varchar(45) not null;
+Query OK, 0 rows affected (0.11 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+如果觉的这个email这列没有存在的必要了，可以使用下面的代码删除它，例如：
+mysql> alter table tb_demo drop email;
+Query OK, 0 rows affected (0.09 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+3.处理表记录
+就是增,删,改,查表记录。
+
+3.1.向表中增加一条记录
+关于插入的sql的语句
+sql = "insert into table_name (id,name,password,mobile,description) values(?,?,?,?,?)"
+
+3.2.查询表中的记录
+3.2.1.查询表中的所有记录
+mysql>select * from 数据表;
+3.2.2查询表中id=1的记录
+mysql>select * from 数据表 where id=1;
+
+关于查询sql的语句
+sql="select * from 数据表 where 字段名=字段值 order by 字段名 [desc]"
+sql="select * from 数据表 where 字段名 like '%字段值%' order by 字段名 [desc]"
+sql="select top 10 * from 数据表 where 字段名 order by 字段名 [desc]"
+sql="select * from 数据表 where 字段名 in ('值1','值2','值3')"
+sql="select * from 数据表 where 字段名 between 值1 and 值2"
+
+3.3.更新表中的记录
+
+sql = "update my_admin_info SET mobile=?,name=?,password=?,description=? where id=?";
+关于更新的sql的语句
+sql="update 数据表 set 字段名=字段值 where 条件表达式"
+sql="update 数据表 set 字段1=值1,字段2=值2 …… 字段n=值n where 条件表达式"
+
+3.4.删除表的记录
+3.4.1删除表中的所有记录
+mysql>delete from 表名;
+3.4.2删除表中id=1的一条记录
+mysql>delete from 表名 where id=1;
+
+关于删除的sql的语句
+sql = "delete from my_admin_info where id=?";
+
+
+二、常用命令汇总：
+连接：mysql -h 主机地址 -u 用户名 －p 用户密码 （注:u与root可以不用加空格，其它也一样）
+断开：exit （回车）
+
+创建授权：grant select on 数据库.* to 用户名@登录主机 identified by /"密码/"
+修改密码：mysqladmin -u用户名 -p旧密码 password 新密码
+删除授权: revoke select,insert,update,delete om *.* from test2@localhost;
+
+显示数据库：show databases;
+显示数据表：show tables;
+显示表结构：describe 表名;
+
+创建库：create database 库名;
+删除库：drop database 库名;
+使用库：use 库名;
+
+创建表：create table 表名 (字段设定列表);
+删除表：drop table 表名;
+修改表：alter table t1 rename t2
+查询表：select * from 表名;
+清空表：delete from 表名;
+备份表: mysqlbinmysqldump -h(ip) -uroot -p(password) databasename tablename > tablename.sql
+恢复表: mysqlbinmysql -h(ip) -uroot -p(password) databasename tablename < tablename.sql（操作前先把原来表删除）
+
+增加列：ALTER TABLE t2 ADD c INT UNSIGNED NOT NULL AUTO_INCREMENT,ADD INDEX (c);
+修改列：ALTER TABLE t2 MODIFY a TINYINT NOT NULL, CHANGE b c CHAR(20);
+删除列：ALTER TABLE t2 DROP COLUMN c;
+
+备份数据库：mysql/bin/mysqldump -h(ip) -uroot -p(password) databasename > database.sql
+恢复数据库：mysql/bin/mysql -h(ip) -uroot -p(password) databasename < database.sql
+复制数据库：mysql/bin/mysqldump --all-databases > all-databases.sql
+修复数据库：mysqlcheck -A -o -uroot -p54safer
+
+文本数据导入：load data local infile /"文件名/" into table 表名;
+
+数据导入导出：mysql/bin/mysqlimport database tables.txt
+
+
+三、权限说明
+全局管理权限：
+FILE: 在MySQL服务器上读写文件。
+PROCESS: 显示或杀死属于其它用户的服务线程。
+RELOAD: 重载访问控制表，刷新日志等。
+SHUTDOWN: 关闭MySQL服务。
+数据库/数据表/数据列权限：
+ALTER: 修改已存在的数据表(例如增加/删除列)和索引。
+CREATE: 建立新的数据库或数据表。
+DELETE: 删除表的记录。
+DROP: 删除数据表或数据库。
+INDEX: 建立或删除索引。
+INSERT: 增加表的记录。
+SELECT: 显示/搜索表的记录。
+UPDATE: 修改表中已存在的记录。
+特别的权限：
+ALL: 允许做任何事(和root一样)。
+USAGE: 只允许登录–其它什么也不允许做
