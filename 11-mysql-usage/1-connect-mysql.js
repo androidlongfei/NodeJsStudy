@@ -1,7 +1,7 @@
 /**
  * Created by longfei on 16/4/13.
  */
-
+var process = require('process');
 var User = require('./model/user.js');
 var createTable = require('./sql/createTable.js');
 var deleteTable = require("./sql/deleteTable");
